@@ -10,10 +10,16 @@ export class WhatsappBotListener {
   @OnEvent(WhatsappEvents.MESSAGE_CREATED)
   async processMessageCreated(message: whatsappWeb.Message) {
     const chat = await message.getChat();
+    const contact = await message.getContact();
 
-    this.logger.log(
-      `New message from ${chat.isGroup ? `${message.author} in ${chat.name}` : chat.name}: ${message.body}`,
-    );
+    if (contact.isMe) {
+      this.logger.log(`New message sent to ${chat.name}: ${message.body}`);
+    } else {
+      const contactName = contact.name ?? contact.number;
+      this.logger.log(
+        `New message from ${contactName}${chat.isGroup ? ` in ${chat.name}` : ''}: ${message.body}`,
+      );
+    }
   }
 
   @OnEvent(WhatsappEvents.MESSAGE_RECEIVED)
