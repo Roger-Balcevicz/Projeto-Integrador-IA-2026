@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import whatsappWeb from 'whatsapp-web.js';
-import * as WhatsappEvents from '../whatsapp/whatsapp-events';
+import { WhatsappEvents } from '../whatsapp/whatsapp-events';
 
 @Injectable()
 export class WhatsappBotListener {

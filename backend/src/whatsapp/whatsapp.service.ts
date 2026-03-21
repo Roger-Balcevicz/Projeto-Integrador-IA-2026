@@ -7,7 +7,7 @@ import {
 import { Client } from 'whatsapp-web.js';
 import * as qrcode from 'qrcode-terminal';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import * as WhatsappEvents from './whatsapp-events';
+import { WhatsappEvents } from './whatsapp-events';
 
 @Injectable()
 export class WhatsappService implements OnModuleInit, OnModuleDestroy {
