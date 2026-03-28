@@ -11,7 +11,7 @@ export class WhatsappBotListener {
   constructor(private readonly botMessageBuffer: BotMessageBufferService) {}
 
   @OnEvent(WhatsappEvents.MESSAGE_CREATED)
-  async processMessageCreated(message: whatsappWeb.Message) {
+  public async processMessageCreated(message: whatsappWeb.Message) {
     const chat = await message.getChat();
     const contact = await message.getContact();
 
@@ -26,7 +26,7 @@ export class WhatsappBotListener {
   }
 
   @OnEvent(WhatsappEvents.MESSAGE_RECEIVED)
-  async processMessageReceived(message: whatsappWeb.Message) {
+  public async processMessageReceived(message: whatsappWeb.Message) {
     const chat = await message.getChat();
     this.botMessageBuffer.enqueue(chat, message);
   }

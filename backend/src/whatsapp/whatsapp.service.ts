@@ -18,7 +18,7 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     this.client = new Client({});
   }
 
-  async sendMessage(chatId: string, message: string) {
+  public async sendMessage(chatId: string, message: string) {
     await this.client.sendMessage(chatId, message);
   }
 

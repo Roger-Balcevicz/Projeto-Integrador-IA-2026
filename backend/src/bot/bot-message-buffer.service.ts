@@ -11,7 +11,7 @@ export class BotMessageBufferService {
 
   constructor(private readonly whatsappBotService: WhatsappBotService) {}
 
-  enqueue(chat: Chat, message: Message) {
+  public enqueue(chat: Chat, message: Message) {
     const chatId = chat.id._serialized;
 
     this.logger.log(`New message from chat ${chatId} - Adding to queue`);

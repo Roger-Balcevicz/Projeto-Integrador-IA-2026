@@ -7,7 +7,7 @@ export class WhatsappBotService {
   private logger = new Logger(WhatsappBotService.name);
   constructor(private readonly whatsappService: WhatsappService) {}
 
-  handleMessageBatch(chat: Chat, messages: Message[]) {
+  public handleMessageBatch(chat: Chat, messages: Message[]) {
     this.logger.log(
       `Consuming queue from chat ${chat.id._serialized} (queue size: ${messages.length})...`,
     );
