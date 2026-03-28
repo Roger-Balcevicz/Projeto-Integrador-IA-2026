@@ -24,15 +24,19 @@ export class BotMessageBufferService {
 
     messages.push(message);
 
-    const timeout = this.timeoutsByChat.get(chatId);
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-
+    this.invalidateTimeout(chatId);
     this.timeoutsByChat.set(
       chatId,
       setTimeout(() => this.flush(chat, messages), 10000),
     );
+  }
+
+  private invalidateTimeout(chatId: string) {
+    const timeout = this.timeoutsByChat.get(chatId);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.timeoutsByChat.delete(chatId);
+    }
   }
 
   private flush(chat: Chat, messages: Message[]): void {
