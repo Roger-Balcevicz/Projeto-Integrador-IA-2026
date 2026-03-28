@@ -42,15 +42,11 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.client.on('message', (message) => {
-      this.waitAndEmit(WhatsappEvents.MESSAGE_RECEIVED, message);
+      this.eventEmitter.emit(WhatsappEvents.MESSAGE_RECEIVED, message);
     });
 
     this.client.on('message_create', (message) => {
-      this.waitAndEmit(WhatsappEvents.MESSAGE_CREATED, message);
+      this.eventEmitter.emit(WhatsappEvents.MESSAGE_CREATED, message);
     });
-  }
-
-  private waitAndEmit(event: WhatsappEvents, payload: any) {
-    setTimeout(() => this.eventEmitter.emit(event, payload), 5000);
   }
 }
