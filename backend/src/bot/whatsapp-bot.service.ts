@@ -20,10 +20,12 @@ export class WhatsappBotService {
       }
     });
 
-    this.whatsappService
-      .sendMessage(chat.id._serialized, pongs.join('\n'))
-      .catch((err) => {
-        this.logger.error('Something went wrong while sending message', err);
-      });
+    if (pongs.length > 0) {
+      this.whatsappService
+        .sendMessage(chat.id._serialized, pongs.join('\n'))
+        .catch((err) => {
+          this.logger.error('Something went wrong while sending message', err);
+        });
+    }
   }
 }
