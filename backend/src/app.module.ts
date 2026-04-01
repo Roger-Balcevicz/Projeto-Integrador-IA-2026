@@ -3,12 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { WhatsappBotListener } from './bot/whatsapp-bot.listener';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { WhatsappClientModule } from './whatsapp-client/whatsapp-client.module';
 import { BotMessageBufferService } from './bot/bot-message-buffer.service';
 import { WhatsappBotService } from './bot/whatsapp-bot.service';
 
 @Module({
-  imports: [EventEmitterModule.forRoot(), WhatsappModule],
+  imports: [EventEmitterModule.forRoot(), WhatsappClientModule],
   controllers: [AppController],
   providers: [
     AppService,

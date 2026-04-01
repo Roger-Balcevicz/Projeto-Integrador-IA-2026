@@ -1,11 +1,11 @@
-import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { WhatsappClientService } from '../whatsapp-client/whatsapp-client.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { Chat, Message } from 'whatsapp-web.js';
 
 @Injectable()
 export class WhatsappBotService {
   private logger = new Logger(WhatsappBotService.name);
-  constructor(private readonly whatsappService: WhatsappService) {}
+  constructor(private readonly whatsappService: WhatsappClientService) {}
 
   public handleMessageBatch(chat: Chat, messages: Message[]) {
     this.logger.log(

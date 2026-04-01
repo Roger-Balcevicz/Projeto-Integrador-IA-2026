@@ -7,7 +7,7 @@ import {
 import { Client } from 'whatsapp-web.js';
 import * as qrcode from 'qrcode-terminal';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { WhatsappEvents } from './whatsapp-events';
+import { WhatsappClientEvents } from './whatsapp-client-events';
 import {
   ClientStatus,
   Initializing,
@@ -18,9 +18,9 @@ import {
 } from './whatsapp-client-status';
 
 @Injectable()
-export class WhatsappService implements OnModuleInit, OnModuleDestroy {
+export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
   private readonly client: Client;
-  private readonly logger: Logger = new Logger(WhatsappService.name);
+  private readonly logger: Logger = new Logger(WhatsappClientService.name);
   private clientStatus: ClientStatus = new Initializing();
 
   constructor(private readonly eventEmitter: EventEmitter2) {
@@ -71,11 +71,11 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.client.on('message', (message) => {
-      this.eventEmitter.emit(WhatsappEvents.MESSAGE_RECEIVED, message);
+      this.eventEmitter.emit(WhatsappClientEvents.MESSAGE_RECEIVED, message);
     });
 
     this.client.on('message_create', (message) => {
-      this.eventEmitter.emit(WhatsappEvents.MESSAGE_CREATED, message);
+      this.eventEmitter.emit(WhatsappClientEvents.MESSAGE_CREATED, message);
     });
   }
 }

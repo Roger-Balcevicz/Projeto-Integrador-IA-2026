@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import whatsappWeb from 'whatsapp-web.js';
-import { WhatsappEvents } from '../whatsapp/whatsapp-events';
+import { WhatsappClientEvents } from '../whatsapp-client/whatsapp-client-events';
 import { BotMessageBufferService } from './bot-message-buffer.service';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class WhatsappBotListener {
 
   constructor(private readonly botMessageBuffer: BotMessageBufferService) {}
 
-  @OnEvent(WhatsappEvents.MESSAGE_CREATED)
+  @OnEvent(WhatsappClientEvents.MESSAGE_CREATED)
   public async processMessageCreated(message: whatsappWeb.Message) {
     const chat = await message.getChat();
     const contact = await message.getContact();
@@ -25,7 +25,7 @@ export class WhatsappBotListener {
     }
   }
 
-  @OnEvent(WhatsappEvents.MESSAGE_RECEIVED)
+  @OnEvent(WhatsappClientEvents.MESSAGE_RECEIVED)
   public async processMessageReceived(message: whatsappWeb.Message) {
     const chat = await message.getChat();
     this.botMessageBuffer.enqueue(chat, message);
