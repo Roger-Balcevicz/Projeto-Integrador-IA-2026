@@ -1,4 +1,4 @@
-export class Initializing {}
+export class Bootstrapping {}
 
 export class Ready {}
 
@@ -13,7 +13,7 @@ export class Disconnected {
 }
 
 export type ClientStatus =
-  | Initializing
+  | Bootstrapping
   | Ready
   | Authenticated
   | AuthFailure

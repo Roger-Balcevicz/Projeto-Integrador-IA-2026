@@ -10,7 +10,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WhatsappClientEvents } from './whatsapp-client-events';
 import {
   ClientStatus,
-  Initializing,
+  Bootstrapping,
   Ready,
   Authenticated,
   AuthFailure,
@@ -21,7 +21,7 @@ import {
 export class WhatsappClientService implements OnModuleInit, OnModuleDestroy {
   private readonly client: Client;
   private readonly logger: Logger = new Logger(WhatsappClientService.name);
-  private clientStatus: ClientStatus = new Initializing();
+  private clientStatus: ClientStatus = new Bootstrapping();
 
   constructor(private readonly eventEmitter: EventEmitter2) {
     this.client = new Client({});
