@@ -16,7 +16,7 @@ This project is a **NestJS-based WhatsApp AI bot** developed as a college projec
 
 1.  **WhatsApp Client Bridge (`src/whatsapp-client`):** Wraps `whatsapp-web.js` and emits events via `EventEmitter2`.
 2.  **Message Buffer (`src/bot/bot-message-buffer.service.ts`):** Implements a **10-second debounce** to group sequential messages (especially useful for multi-photo uploads) into a single processing batch.
-3.  **Basic Task Structure:** A preliminary `Task` entity exists in `src/task-manager/task/task.entity.ts` (using TypeORM, to be refactored).
+3.  **Basic Task Structure:** A preliminary `Task` entity exists in `src/task-manager/task/task.schema.ts` (using TypeORM, to be refactored).
 
 ---
 
