@@ -10,24 +10,10 @@ export class WhatsappBotListener {
 
   constructor(private readonly botMessageBuffer: BotMessageBufferService) {}
 
-  @OnEvent(WhatsappClientEvents.MESSAGE_CREATED)
-  public async processMessageCreated(message: whatsappWeb.Message) {
-    const chat = await message.getChat();
-    const contact = await message.getContact();
-
-    if (contact.isMe) {
-      this.logger.log(`New message sent to ${chat.name}: ${message.body}`);
-    } else {
-      const contactName = contact.name ?? contact.number;
-      this.logger.log(
-        `New message from ${contactName}${chat.isGroup ? ` in ${chat.name}` : ''}: ${message.body}`,
-      );
-    }
-  }
-
   @OnEvent(WhatsappClientEvents.MESSAGE_RECEIVED)
   public async processMessageReceived(message: whatsappWeb.Message) {
     const chat = await message.getChat();
+    this.logger.log(`New received message in chat ${chat.id._serialized}`);
     this.botMessageBuffer.enqueue(chat, message);
   }
 }
