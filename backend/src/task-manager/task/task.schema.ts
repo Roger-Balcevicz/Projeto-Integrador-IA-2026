@@ -13,10 +13,10 @@ export class Task {
   title: string;
 
   @Prop()
-  description: string;
+  description?: string;
 
   @Prop({ required: true })
-  customer: Customer;
+  customerId: number;
 
   @Prop({ required: true })
   status: TaskStatus = TaskStatus.IN_PROGRESS_AI;
@@ -32,11 +32,6 @@ export class Task {
 
   @Prop({ required: true })
   messages: Message[];
-}
-
-interface Customer {
-  phone: string;
-  contactName?: string;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
