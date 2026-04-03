@@ -9,30 +9,23 @@ import { WhatsappBotService } from './bot/whatsapp-bot.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { TaskManagerModule } from './task-manager/task-manager.module';
 
 function loadEnvFileIfPresent(): void {
   const envPath = resolve(process.cwd(), '.env');
-  if (!existsSync(envPath)) {
-    return;
-  }
+  if (!existsSync(envPath)) return;
 
   const lines = readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (!line || line.startsWith('#')) {
-      continue;
-    }
+    if (!line || line.startsWith('#')) continue;
 
     const exportPrefix = line.startsWith('export ') ? 7 : 0;
     const equalSignIndex = line.indexOf('=', exportPrefix);
-    if (equalSignIndex === -1) {
-      continue;
-    }
+    if (equalSignIndex === -1) continue;
 
     const key = line.slice(exportPrefix, equalSignIndex).trim();
-    if (!key || process.env[key] !== undefined) {
-      continue;
-    }
+    if (!key || process.env[key] !== undefined) continue;
 
     let value = line.slice(equalSignIndex + 1).trim();
     if (
@@ -48,11 +41,17 @@ function loadEnvFileIfPresent(): void {
 
 loadEnvFileIfPresent();
 
-const { MONGODB_URI, MONGODB_HOST, MONGODB_PORT, MONGODB_DATABASE } =
-  process.env;
+const {
+  MONGODB_URI,
+  MONGODB_HOST,
+  MONGODB_PORT,
+  MONGODB_DATABASE,
+  MONGODB_USER,
+  MONGODB_PASSWORD,
+} = process.env;
 
 const mongoUrl =
-  MONGODB_URI?.trim() ||
+  (MONGODB_URI && MONGODB_URI.trim()) ||
   (MONGODB_HOST && MONGODB_PORT && MONGODB_DATABASE
     ? `mongodb://${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}`
     : undefined);
@@ -66,8 +65,13 @@ if (!mongoUrl) {
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    MongooseModule.forRoot(mongoUrl, {
+      dbName: MONGODB_DATABASE,
+      user: MONGODB_USER,
+      pass: MONGODB_PASSWORD,
+    }),
     WhatsappClientModule,
-    MongooseModule.forRoot(mongoUrl),
+    TaskManagerModule,
   ],
   controllers: [AppController],
   providers: [
@@ -78,3 +82,4 @@ if (!mongoUrl) {
   ],
 })
 export class AppModule {}
+

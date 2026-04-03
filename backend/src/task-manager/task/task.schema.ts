@@ -1,11 +1,10 @@
 import { TaskStatus } from './task-status';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Message } from '../../chat/message.model';
+import { Customer } from '../customer/customer.schema';
 
 export type TaskDocument = HydratedDocument<Task>;
-
-class Intent {}
 
 @Schema()
 export class Task {
@@ -13,16 +12,20 @@ export class Task {
   title: string;
 
   @Prop()
-  description: string;
+  description?: string;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    type: Types.ObjectId,
+    ref: 'Customer',
+  })
   customer: Customer;
 
   @Prop({ required: true })
   status: TaskStatus = TaskStatus.IN_PROGRESS_AI;
 
   @Prop()
-  intent: Intent;
+  intent?: string; // Revelação de fotos, pedido de orçamento, etc. Não deverá ser string
 
   @Prop({ required: true })
   startDate: Date;
@@ -30,13 +33,8 @@ export class Task {
   @Prop()
   endDate?: Date;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: [Message] })
   messages: Message[];
-}
-
-interface Customer {
-  phone: string;
-  contactName?: string;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
