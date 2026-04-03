@@ -1,7 +1,8 @@
 import { TaskStatus } from './task-status';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Message } from '../../chat/message.model';
+import { Customer } from '../customer/customer.schema';
 
 export type TaskDocument = HydratedDocument<Task>;
 
@@ -13,8 +14,12 @@ export class Task {
   @Prop()
   description?: string;
 
-  @Prop({ required: true })
-  customerId: number;
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer',
+  })
+  customer: Customer;
 
   @Prop({ required: true })
   status: TaskStatus = TaskStatus.IN_PROGRESS_AI;
@@ -28,7 +33,7 @@ export class Task {
   @Prop()
   endDate?: Date;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: [Message] })
   messages: Message[];
 }
 
