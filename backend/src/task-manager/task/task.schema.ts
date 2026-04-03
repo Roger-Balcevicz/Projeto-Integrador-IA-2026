@@ -1,5 +1,5 @@
 import { TaskStatus } from './task-status';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Message } from '../../chat/message.model';
 import { Customer } from '../customer/customer.schema';
@@ -16,7 +16,7 @@ export class Task {
 
   @Prop({
     required: true,
-    type: mongoose.Schema.Types.ObjectId,
+    type: Types.ObjectId,
     ref: 'Customer',
   })
   customer: Customer;
