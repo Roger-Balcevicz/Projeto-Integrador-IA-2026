@@ -7,16 +7,28 @@ import { WhatsappClientModule } from './whatsapp-client/whatsapp-client.module';
 import { BotMessageBufferService } from './bot/bot-message-buffer.service';
 import { WhatsappBotService } from './bot/whatsapp-bot.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { TaskManagerModule } from './task-manager/task-manager.module';
 
-const { MONGODB_HOST, MONGODB_PORT, MONGODB_DATABASE } = process.env;
+const {
+  MONGODB_HOST,
+  MONGODB_PORT,
+  MONGODB_DATABASE,
+  MONGODB_USER,
+  MONGODB_PASSWORD,
+} = process.env;
 
-const mongoUrl = `mongodb://${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}`;
+const mongoUri = `mongodb://${MONGODB_HOST}:${MONGODB_PORT}`;
 
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    MongooseModule.forRoot(mongoUri, {
+      dbName: MONGODB_DATABASE,
+      user: MONGODB_USER,
+      pass: MONGODB_PASSWORD,
+    }),
     WhatsappClientModule,
-    MongooseModule.forRoot(mongoUrl),
+    TaskManagerModule,
   ],
   controllers: [AppController],
   providers: [
