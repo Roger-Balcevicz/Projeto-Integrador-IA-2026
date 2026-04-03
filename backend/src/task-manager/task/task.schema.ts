@@ -5,8 +5,6 @@ import { Message } from '../../chat/message.model';
 
 export type TaskDocument = HydratedDocument<Task>;
 
-class Intent {}
-
 @Schema()
 export class Task {
   @Prop({ required: true })
@@ -22,7 +20,7 @@ export class Task {
   status: TaskStatus = TaskStatus.IN_PROGRESS_AI;
 
   @Prop()
-  intent: Intent;
+  intent?: string; // Revelação de fotos, pedido de orçamento, etc. Não deverá ser string
 
   @Prop({ required: true })
   startDate: Date;
