@@ -10,6 +10,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TaskManagerModule } from './task-manager/task-manager.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 function loadEnvFileIfPresent(): void {
   const envPath = resolve(process.cwd(), '.env');
@@ -80,6 +82,8 @@ if (!mongoUrl) {
     ),
     WhatsappClientModule,
     TaskManagerModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [
@@ -90,4 +94,3 @@ if (!mongoUrl) {
   ],
 })
 export class AppModule {}
-
