@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Task } from './task.schema';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class TaskService {
@@ -14,6 +14,6 @@ export class TaskService {
   }
 
   public async findById(id: string): Promise<Task | null> {
-    return this.taskModel.findOne({ _id: new Types.ObjectId(id) }).exec();
+    return this.taskModel.findById(id).exec();
   }
 }
