@@ -58,7 +58,7 @@ const isUsingMongoUri = Boolean(trimmedMongoUri);
 const mongoUrl =
   trimmedMongoUri ||
   (MONGODB_HOST && MONGODB_PORT && MONGODB_DATABASE
-    ? `mongodb://${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}`
+    ? `mongodb://${MONGODB_HOST}:${MONGODB_PORT}`
     : undefined);
 
 if (!mongoUrl) {
