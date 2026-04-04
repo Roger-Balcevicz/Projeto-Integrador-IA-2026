@@ -1,6 +1,6 @@
 import { WhatsappClientService } from '../whatsapp-client/whatsapp-client.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { Chat, Message } from 'whatsapp-web.js';
+import { Message } from 'whatsapp-web.js';
 
 @Injectable()
 export class WhatsappBotService {
@@ -17,16 +17,22 @@ export class WhatsappBotService {
       'Evite mencionar que é IA ou chatbot.',
       'Mantenha as respostas curtas e faça no máximo uma pergunta por vez.',
     ].join(' ');
+  private readonly ollamaStreamLogs =
+    (process.env.OLLAMA_STREAM_LOGS || 'false').toLowerCase() === 'true';
+  private readonly ollamaTimeoutMs = Number(process.env.OLLAMA_TIMEOUT_MS || 90000);
+  private readonly ollamaNumPredict = Number(process.env.OLLAMA_NUM_PREDICT || 220);
+  private readonly ollamaThink =
+    (process.env.OLLAMA_THINK || 'false').toLowerCase() === 'true';
 
   constructor(private readonly whatsappService: WhatsappClientService) {}
 
-  public handleMessageBatch(chat: Chat, messages: Message[]) {
-    void this.processBatch(chat, messages);
+  public handleMessageBatch(chatId: string, messages: Message[]) {
+    void this.processBatch(chatId, messages);
   }
 
-  private async processBatch(chat: Chat, messages: Message[]) {
+  private async processBatch(chatId: string, messages: Message[]) {
     this.logger.log(
-      `Consuming queue from chat ${chat.id._serialized} (queue size: ${messages.length})...`,
+      `Consuming queue from chat ${chatId} (queue size: ${messages.length})...`,
     );
 
     const userInput = messages
@@ -40,31 +46,63 @@ export class WhatsappBotService {
     }
 
     try {
+      this.logger.log(`Calling Ollama model "${this.ollamaModel}"...`);
       const aiResponse = await this.generateReply(userInput);
       const sanitizedReply = aiResponse.slice(0, 3000).trim();
       if (!sanitizedReply) {
+        this.logger.warn('Ollama returned empty content, sending fallback message');
+        await this.whatsappService.sendMessage(
+          chatId,
+          'Não consegui responder agora. Pode repetir sua mensagem em uma frase curta?',
+        );
         return;
       }
 
-      await this.whatsappService.sendMessage(chat.id._serialized, sanitizedReply);
+      this.logger.log(
+        `Generated reply (${sanitizedReply.length} chars). Sending to chat ${chatId}...`,
+      );
+      await this.whatsappService.sendMessage(chatId, sanitizedReply);
+      this.logger.log(`Reply sent to chat ${chatId}`);
     } catch (error) {
       this.logger.error('Something went wrong while generating/sending message', error);
     }
   }
 
   private async generateReply(userInput: string): Promise<string> {
-    const response = await fetch(`${this.ollamaBaseUrl}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.ollamaModel,
-        stream: false,
-        messages: [
-          { role: 'system', content: this.systemPrompt },
-          { role: 'user', content: userInput },
-        ],
-      }),
-    });
+    const controller = new AbortController();
+    let abortedByTimeout = false;
+    const timeout = setTimeout(() => {
+      abortedByTimeout = true;
+      controller.abort();
+    }, this.ollamaTimeoutMs);
+
+    let response: Response;
+    try {
+      response = await fetch(`${this.ollamaBaseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: this.ollamaModel,
+          stream: true,
+          think: this.ollamaThink,
+          options: {
+            num_predict: this.ollamaNumPredict,
+          },
+          messages: [
+            { role: 'system', content: this.systemPrompt },
+            { role: 'user', content: userInput },
+          ],
+        }),
+      });
+    } catch (error) {
+      if (abortedByTimeout) {
+        throw new Error(
+          `Ollama timed out after ${this.ollamaTimeoutMs}ms while opening the response`,
+        );
+      }
+      throw error;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -73,10 +111,115 @@ export class WhatsappBotService {
       );
     }
 
-    const payload = (await response.json()) as {
-      message?: { content?: string };
-    };
+    if (!response.body) {
+      throw new Error('Ollama response body is empty');
+    }
 
-    return payload.message?.content?.trim() ?? '';
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullContent = '';
+    let fullThinking = '';
+
+    if (this.ollamaStreamLogs) {
+      this.logger.log('Ollama stream started');
+      process.stdout.write('\n[OLLAMA STREAM] ');
+    }
+
+    try {
+      for await (const chunk of response.body) {
+        buffer += decoder.decode(chunk, { stream: true });
+
+        let newLineIndex = buffer.indexOf('\n');
+        while (newLineIndex !== -1) {
+          const line = buffer.slice(0, newLineIndex).trim();
+          buffer = buffer.slice(newLineIndex + 1);
+
+          if (line) {
+            const payload = JSON.parse(line) as {
+              message?: {
+                content?: string;
+                thinking?: string;
+                reasoning_content?: string;
+              };
+              response?: string;
+              content?: string;
+              thinking?: string;
+              reasoning_content?: string;
+              done?: boolean;
+            };
+
+            const answerToken =
+              payload.message?.content ?? payload.response ?? payload.content ?? '';
+            const thinkingToken =
+              payload.message?.thinking ??
+              payload.message?.reasoning_content ??
+              payload.thinking ??
+              payload.reasoning_content ??
+              '';
+
+            if (answerToken) {
+              fullContent += answerToken;
+              if (this.ollamaStreamLogs) {
+                process.stdout.write(answerToken);
+              }
+            }
+
+            if (thinkingToken) {
+              fullThinking += thinkingToken;
+              if (this.ollamaStreamLogs && this.ollamaThink) {
+                process.stdout.write(thinkingToken);
+              }
+            }
+
+            if (payload.done && this.ollamaStreamLogs) {
+              process.stdout.write('\n');
+              this.logger.log('Ollama stream finished');
+            }
+          }
+
+          newLineIndex = buffer.indexOf('\n');
+        }
+      }
+    } catch (error) {
+      if (abortedByTimeout) {
+        throw new Error(
+          `Ollama timed out after ${this.ollamaTimeoutMs}ms while reading streamed tokens`,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const remaining = buffer.trim();
+    if (remaining) {
+      const payload = JSON.parse(remaining) as {
+        message?: {
+          content?: string;
+          thinking?: string;
+          reasoning_content?: string;
+        };
+        response?: string;
+        content?: string;
+        thinking?: string;
+        reasoning_content?: string;
+      };
+      fullContent += payload.message?.content ?? payload.response ?? payload.content ?? '';
+      fullThinking +=
+        payload.message?.thinking ??
+        payload.message?.reasoning_content ??
+        payload.thinking ??
+        payload.reasoning_content ??
+        '';
+    }
+
+    if (!fullContent.trim()) {
+      this.logger.warn(
+        `Ollama stream finished without answer tokens. thinking_chars=${fullThinking.length}. ` +
+          'Set OLLAMA_THINK=false or increase OLLAMA_NUM_PREDICT.',
+      );
+    }
+
+    return fullContent.trim();
   }
 }

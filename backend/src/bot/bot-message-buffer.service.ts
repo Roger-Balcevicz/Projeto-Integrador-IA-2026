@@ -1,4 +1,4 @@
-import { Chat, Message } from 'whatsapp-web.js';
+import { Message } from 'whatsapp-web.js';
 import { Injectable, Logger } from '@nestjs/common';
 import { WhatsappBotService } from './whatsapp-bot.service';
 
@@ -11,9 +11,7 @@ export class BotMessageBufferService {
 
   constructor(private readonly whatsappBotService: WhatsappBotService) {}
 
-  public enqueue(chat: Chat, message: Message) {
-    const chatId = chat.id._serialized;
-
+  public enqueue(chatId: string, message: Message) {
     this.logger.log(`New message from chat ${chatId} - Adding to queue`);
     if (!this.messageQueuesByChat.get(chatId)) {
       this.messageQueuesByChat.set(chatId, []);
@@ -27,7 +25,7 @@ export class BotMessageBufferService {
     this.invalidateTimeout(chatId);
     this.timeoutsByChat.set(
       chatId,
-      setTimeout(() => this.flush(chat, messages), 10000),
+      setTimeout(() => this.flush(chatId, messages), 10000),
     );
   }
 
@@ -39,10 +37,8 @@ export class BotMessageBufferService {
     }
   }
 
-  private flush(chat: Chat, messages: Message[]): void {
-    const chatId = chat.id._serialized;
-
-    this.whatsappBotService.handleMessageBatch(chat, messages);
+  private flush(chatId: string, messages: Message[]): void {
+    this.whatsappBotService.handleMessageBatch(chatId, messages);
     this.messageQueuesByChat.set(chatId, []);
     this.timeoutsByChat.delete(chatId);
   }

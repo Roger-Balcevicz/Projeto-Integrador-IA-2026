@@ -50,8 +50,11 @@ const {
   MONGODB_PASSWORD,
 } = process.env;
 
+const trimmedMongoUri = MONGODB_URI?.trim();
+const isUsingMongoUri = Boolean(trimmedMongoUri);
+
 const mongoUrl =
-  (MONGODB_URI && MONGODB_URI.trim()) ||
+  trimmedMongoUri ||
   (MONGODB_HOST && MONGODB_PORT && MONGODB_DATABASE
     ? `mongodb://${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}`
     : undefined);
@@ -65,11 +68,16 @@ if (!mongoUrl) {
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
-    MongooseModule.forRoot(mongoUrl, {
-      dbName: MONGODB_DATABASE,
-      user: MONGODB_USER,
-      pass: MONGODB_PASSWORD,
-    }),
+    MongooseModule.forRoot(
+      mongoUrl,
+      isUsingMongoUri
+        ? {}
+        : {
+            dbName: MONGODB_DATABASE,
+            user: MONGODB_USER,
+            pass: MONGODB_PASSWORD,
+          },
+    ),
     WhatsappClientModule,
     TaskManagerModule,
   ],
