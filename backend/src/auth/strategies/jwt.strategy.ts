@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { JwtPayload } from '../interfaces/auth.interface';
 
+// Utilizado implicitamente por JwtAuthGuard, o parâmetro 'jwt' no extends sinaliza que deve ser usada essa classe
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
