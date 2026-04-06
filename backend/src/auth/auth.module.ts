@@ -13,7 +13,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secretKey',
-      signOptions: { expiresIn: '7d' }, // Token válido por 7 dias para o app mobile
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
